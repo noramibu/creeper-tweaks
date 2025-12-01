@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "me.noramibu.creepertweaks.mixin",
+  "compatibilityLevel": "${java}",
+  "mixins": [
+    "CreeperMixin",
+    "MobSpawnMixin",
+    "CreeperAccessor",
+    "ServerLevelMixin",
+    "LivingEntityMixin",
+    "ExplosionMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

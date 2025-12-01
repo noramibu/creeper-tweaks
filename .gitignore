@@ -15,9 +15,7 @@ classes/
 *.iml
 *.ipr
 *.iws
-
-# vscode
-
+.cursor/
 .settings/
 .vscode/
 bin/
