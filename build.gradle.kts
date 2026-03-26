@@ -1,19 +1,12 @@
 plugins {
-    id("fabric-loom")
-
-    // `maven-publish`
-    // id("me.modmuss50.mod-publish-plugin")
+    id("net.fabricmc.fabric-loom") version "1.15.5"
 }
 
-version = "${property("mod.version")}+${stonecutter.current.version}"
+group = property("mod.group") as String
+val minecraftVersion = property("minecraft.version") as String
+version = "${property("mod.version")}+$minecraftVersion"
 base.archivesName = property("mod.id") as String
-
-val requiredJava = when {
-    stonecutter.eval(stonecutter.current.version, ">=1.20.6") -> JavaVersion.VERSION_21
-    stonecutter.eval(stonecutter.current.version, ">=1.18") -> JavaVersion.VERSION_17
-    stonecutter.eval(stonecutter.current.version, ">=1.17") -> JavaVersion.VERSION_16
-    else -> JavaVersion.VERSION_1_8
-}
+val requiredJava = JavaVersion.toVersion(25)
 
 repositories {
     /**
@@ -34,15 +27,12 @@ dependencies {
      * @see <a href="https://github.com/FabricMC/fabric">List of Fabric API modules</a>
      */
     fun fapi(vararg modules: String) {
-        for (it in modules) modImplementation(fabricApi.module(it, property("deps.fabric_api") as String))
+        for (it in modules) implementation(fabricApi.module(it, property("deps.fabric_api") as String))
     }
 
-    minecraft("com.mojang:minecraft:${stonecutter.current.version}")
-    
-    // Use Yarn mappings as requested for 1.21.10
-    mappings("net.fabricmc:yarn:1.21.10+build.3:v2")
-    
-    modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
+    minecraft("com.mojang:minecraft:$minecraftVersion")
+
+    implementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
 
     fapi("fabric-lifecycle-events-v1", "fabric-resource-loader-v0", "fabric-content-registries-v0", "fabric-command-api-v2")
     
@@ -64,7 +54,7 @@ loom {
     runConfigs.all {
         ideConfigGenerated(true)
         vmArgs("-Dmixin.debug.export=true") // Exports transformed classes for debugging
-        runDir = "../../run" // Shares the run directory between versions
+        runDir = "run"
     }
 }
 
@@ -79,13 +69,13 @@ tasks {
         inputs.property("id", project.property("mod.id"))
         inputs.property("name", project.property("mod.name"))
         inputs.property("version", project.property("mod.version"))
-        inputs.property("minecraft", project.property("mod.mc_dep"))
+        inputs.property("minecraft", minecraftVersion)
 
         val props = mapOf(
             "id" to project.property("mod.id"),
             "name" to project.property("mod.name"),
             "version" to project.property("mod.version"),
-            "minecraft" to project.property("mod.mc_dep")
+            "minecraft" to minecraftVersion
         )
 
         filesMatching("fabric.mod.json") { expand(props) }
@@ -97,8 +87,8 @@ tasks {
     // Builds the version into a shared folder in `build/libs/${mod version}/`
     register<Copy>("buildAndCollect") {
         group = "build"
-        from(remapJar.map { it.archiveFile }, remapSourcesJar.map { it.archiveFile })
-        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
+        from(jar.map { it.archiveFile }, named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile })
+        into(rootProject.layout.buildDirectory.dir("libs/${project.property("mod.version")}"))
         dependsOn("build")
     }
 }

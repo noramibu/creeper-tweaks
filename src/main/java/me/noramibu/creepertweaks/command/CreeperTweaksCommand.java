@@ -2,6 +2,7 @@ package me.noramibu.creepertweaks.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -9,89 +10,88 @@ import me.noramibu.creepertweaks.config.CreeperTweaksConfig;
 import me.noramibu.creepertweaks.config.CreeperType;
 import me.noramibu.creepertweaks.util.CreeperMixinExtensions;
 import me.noramibu.creepertweaks.util.CreeperUtils;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.CreeperEntity;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.phys.Vec3;
 import java.util.UUID;
 
 public class CreeperTweaksCommand {
-    private static final SimpleCommandExceptionType TYPE_NOT_FOUND_EXCEPTION = new SimpleCommandExceptionType(Text.literal("Creeper type not found"));
-    private static final SimpleCommandExceptionType ENTITY_NOT_FOUND_EXCEPTION = new SimpleCommandExceptionType(Text.literal("Entity not found"));
-    private static final SimpleCommandExceptionType NOT_A_CREEPER_EXCEPTION = new SimpleCommandExceptionType(Text.literal("Entity is not a creeper"));
+    private static final SimpleCommandExceptionType TYPE_NOT_FOUND_EXCEPTION = new SimpleCommandExceptionType(Component.literal("Creeper type not found"));
+    private static final SimpleCommandExceptionType ENTITY_NOT_FOUND_EXCEPTION = new SimpleCommandExceptionType(Component.literal("Entity not found"));
+    private static final SimpleCommandExceptionType NOT_A_CREEPER_EXCEPTION = new SimpleCommandExceptionType(Component.literal("Entity is not a creeper"));
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("creepertweaks")
-            .requires(source -> source.hasPermissionLevel(2))
-            .then(CommandManager.literal("reload")
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("creepertweaks")
+            .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+            .then(Commands.literal("reload")
                 .executes(CreeperTweaksCommand::executeReload)
             )
-            .then(CommandManager.literal("spawn")
-                .then(CommandManager.argument("type", StringArgumentType.string())
-                    .suggests((context, builder) -> CommandSource.suggestMatching(CreeperTweaksConfig.creeperTypes.stream().map(type -> type.name), builder))
+            .then(Commands.literal("spawn")
+                .then(Commands.argument("type", StringArgumentType.string())
+                    .suggests((context, builder) -> SharedSuggestionProvider.suggest(CreeperTweaksConfig.creeperTypes.stream().map(type -> type.name), builder))
                     .executes(CreeperTweaksCommand::executeSpawn)
                 )
             )
-            .then(CommandManager.literal("debug")
-                .then(CommandManager.argument("target", EntityArgumentType.entity())
+            .then(Commands.literal("debug")
+                .then(Commands.argument("target", EntityArgument.entity())
                     .executes(CreeperTweaksCommand::executeDebug)
                 )
             )
         );
     }
 
-    private static int executeReload(CommandContext<ServerCommandSource> context) {
+    private static int executeReload(CommandContext<CommandSourceStack> context) {
         CreeperTweaksConfig.load();
-        context.getSource().sendFeedback(() -> Text.literal("Creeper Tweaks config reloaded!"), true);
+        context.getSource().sendSuccess(() -> Component.literal("Creeper Tweaks config reloaded!"), true);
         return 1;
     }
 
-    private static int executeSpawn(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int executeSpawn(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String typeName = StringArgumentType.getString(context, "type");
         CreeperType type = CreeperTweaksConfig.creeperTypes.stream()
                 .filter(t -> t.name.equals(typeName))
                 .findFirst()
                 .orElseThrow(TYPE_NOT_FOUND_EXCEPTION::create);
 
-        ServerCommandSource source = context.getSource();
-        Vec3d pos = source.getPosition();
+        CommandSourceStack source = context.getSource();
+        Vec3 pos = source.getPosition();
         
-        CreeperEntity creeper = EntityType.CREEPER.create(source.getWorld(), net.minecraft.entity.SpawnReason.COMMAND);
+        Creeper creeper = EntityType.CREEPER.create(source.getLevel(), net.minecraft.world.entity.EntitySpawnReason.COMMAND);
         if (creeper != null) {
-            creeper.refreshPositionAndAngles(pos.x, pos.y, pos.z, 0, 0);
+            creeper.snapTo(pos.x, pos.y, pos.z, 0, 0);
             CreeperUtils.applyCreeperType(creeper, type);
-            source.getWorld().spawnEntity(creeper);
-            source.sendFeedback(() -> Text.literal("Spawned custom creeper: " + type.name), true);
+            source.getLevel().addFreshEntity(creeper);
+            source.sendSuccess(() -> Component.literal("Spawned custom creeper: " + type.name), true);
             return 1;
         }
         return 0;
     }
 
-    private static int executeDebug(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        Entity entity = EntityArgumentType.getEntity(context, "target");
+    private static int executeDebug(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Entity entity = EntityArgument.getEntity(context, "target");
 
-        if (!(entity instanceof CreeperEntity creeper)) {
+        if (!(entity instanceof Creeper creeper)) {
             throw NOT_A_CREEPER_EXCEPTION.create();
         }
 
         if (creeper instanceof CreeperMixinExtensions extensions) {
-            context.getSource().sendFeedback(() -> Text.literal("§6Creeper Debug Info:"), false);
-            context.getSource().sendFeedback(() -> Text.literal("UUID: " + creeper.getUuid()), false);
-            context.getSource().sendFeedback(() -> Text.literal("Shearable: " + extensions.creepertweaks$isShearable()), false);
-            context.getSource().sendFeedback(() -> Text.literal("Confetti Chance: " + extensions.creepertweaks$getConfettiChance()), false);
-            context.getSource().sendFeedback(() -> Text.literal("Eco-Friendly: " + extensions.creepertweaks$isEcoFriendly()), false);
-            context.getSource().sendFeedback(() -> Text.literal("Silent: " + creeper.isSilent()), false);
-            context.getSource().sendFeedback(() -> Text.literal("Powered: " + creeper.isCharged()), false);
-            context.getSource().sendFeedback(() -> Text.literal("Health: " + creeper.getHealth() + "/" + creeper.getMaxHealth()), false);
+            context.getSource().sendSuccess(() -> Component.literal("§6Creeper Debug Info:"), false);
+            context.getSource().sendSuccess(() -> Component.literal("UUID: " + creeper.getUUID()), false);
+            context.getSource().sendSuccess(() -> Component.literal("Shearable: " + extensions.creepertweaks$isShearable()), false);
+            context.getSource().sendSuccess(() -> Component.literal("Confetti Chance: " + extensions.creepertweaks$getConfettiChance()), false);
+            context.getSource().sendSuccess(() -> Component.literal("Eco-Friendly: " + extensions.creepertweaks$isEcoFriendly()), false);
+            context.getSource().sendSuccess(() -> Component.literal("Silent: " + creeper.isSilent()), false);
+            context.getSource().sendSuccess(() -> Component.literal("Powered: " + creeper.isPowered()), false);
+            context.getSource().sendSuccess(() -> Component.literal("Health: " + creeper.getHealth() + "/" + creeper.getMaxHealth()), false);
             return 1;
         } else {
-            context.getSource().sendFeedback(() -> Text.literal("Error: Creeper does not implement mixin extensions."), false);
+            context.getSource().sendSuccess(() -> Component.literal("Error: Creeper does not implement mixin extensions."), false);
             return 0;
         }
     }

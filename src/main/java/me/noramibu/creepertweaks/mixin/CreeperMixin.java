@@ -2,31 +2,29 @@ package me.noramibu.creepertweaks.mixin;
 
 import me.noramibu.creepertweaks.config.CreeperTweaksConfig;
 import me.noramibu.creepertweaks.util.CreeperMixinExtensions;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.FireworkExplosionComponent;
-import net.minecraft.component.type.FireworksComponent;
-import net.minecraft.entity.AreaEffectCloudEntity;
-import net.minecraft.entity.EntityStatuses;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.projectile.FireworkRocketEntity;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.mob.CreeperEntity;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.world.World;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.AreaEffectCloud;
+import net.minecraft.world.entity.EntityEvent;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FireworkRocketEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.FireworkExplosion;
+import net.minecraft.world.item.component.Fireworks;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,8 +36,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.List;
 import java.util.Optional;
 
-@Mixin(CreeperEntity.class)
-public abstract class CreeperMixin extends HostileEntity implements CreeperMixinExtensions {
+@Mixin(Creeper.class)
+public abstract class CreeperMixin extends Monster implements CreeperMixinExtensions {
 
     private boolean creepertweaks$defused = false;
     private boolean creepertweaks$shearable = true;
@@ -58,7 +56,7 @@ public abstract class CreeperMixin extends HostileEntity implements CreeperMixin
     private int creepertweaks$regenerationDelay = 1200;
     private double creepertweaks$regenerationSpeed = 10.0;
 
-    protected CreeperMixin(EntityType<? extends HostileEntity> entityType, World world) {
+    protected CreeperMixin(EntityType<? extends Monster> entityType, Level world) {
         super(entityType, world);
     }
 
@@ -172,8 +170,8 @@ public abstract class CreeperMixin extends HostileEntity implements CreeperMixin
         return this.creepertweaks$regenerationSpeed;
     }
 
-    @Inject(method = "writeCustomData", at = @At("TAIL"))
-    public void creepertweaks$writeNbt(net.minecraft.storage.WriteView view, CallbackInfo ci) {
+    @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+    public void creepertweaks$writeNbt(net.minecraft.world.level.storage.ValueOutput view, CallbackInfo ci) {
         if (creepertweaks$defused) {
             view.putBoolean("CreeperTweaks_Defused", true);
         }
@@ -192,52 +190,52 @@ public abstract class CreeperMixin extends HostileEntity implements CreeperMixin
         view.putDouble("CreeperTweaks_RegenerationSpeed", creepertweaks$regenerationSpeed);
     }
 
-    @Inject(method = "readCustomData", at = @At("TAIL"))
-    public void creepertweaks$readNbt(net.minecraft.storage.ReadView view, CallbackInfo ci) {
-        creepertweaks$defused = view.getBoolean("CreeperTweaks_Defused", false);
+    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+    public void creepertweaks$readNbt(net.minecraft.world.level.storage.ValueInput view, CallbackInfo ci) {
+        creepertweaks$defused = view.getBooleanOr("CreeperTweaks_Defused", false);
         
-        creepertweaks$shearable = view.getBoolean("CreeperTweaks_Shearable", true);
-        creepertweaks$confettiChance = view.getDouble("CreeperTweaks_ConfettiChance", 0.0);
-        creepertweaks$ecoFriendly = view.getBoolean("CreeperTweaks_EcoFriendly", false);
-        creepertweaks$headDropChance = view.getDouble("CreeperTweaks_HeadDropChance", 0.25);
+        creepertweaks$shearable = view.getBooleanOr("CreeperTweaks_Shearable", true);
+        creepertweaks$confettiChance = view.getDoubleOr("CreeperTweaks_ConfettiChance", 0.0);
+        creepertweaks$ecoFriendly = view.getBooleanOr("CreeperTweaks_EcoFriendly", false);
+        creepertweaks$headDropChance = view.getDoubleOr("CreeperTweaks_HeadDropChance", 0.25);
 
-        creepertweaks$lingering = view.getBoolean("CreeperTweaks_Lingering", false);
-        creepertweaks$lingeringType = view.getString("CreeperTweaks_LingeringType", "POISON");
-        creepertweaks$lingeringDuration = view.getInt("CreeperTweaks_LingeringDuration", 600);
-        creepertweaks$lingeringRadius = view.getFloat("CreeperTweaks_LingeringRadius", 3.0f);
+        creepertweaks$lingering = view.getBooleanOr("CreeperTweaks_Lingering", false);
+        creepertweaks$lingeringType = view.getStringOr("CreeperTweaks_LingeringType", "POISON");
+        creepertweaks$lingeringDuration = view.getIntOr("CreeperTweaks_LingeringDuration", 600);
+        creepertweaks$lingeringRadius = view.getFloatOr("CreeperTweaks_LingeringRadius", 3.0f);
 
-        creepertweaks$blockRegeneration = view.getBoolean("CreeperTweaks_BlockRegeneration", false);
-        creepertweaks$regenerationDelay = view.getInt("CreeperTweaks_RegenerationDelay", 1200);
-        creepertweaks$regenerationSpeed = view.getDouble("CreeperTweaks_RegenerationSpeed", 10.0);
+        creepertweaks$blockRegeneration = view.getBooleanOr("CreeperTweaks_BlockRegeneration", false);
+        creepertweaks$regenerationDelay = view.getIntOr("CreeperTweaks_RegenerationDelay", 1200);
+        creepertweaks$regenerationSpeed = view.getDoubleOr("CreeperTweaks_RegenerationSpeed", 10.0);
     }
 
-    @Inject(method = "interactMob", at = @At("HEAD"), cancellable = true)
-    public void creepertweaks$onInteract(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
+    @Inject(method = "mobInteract", at = @At("HEAD"), cancellable = true)
+    public void creepertweaks$onInteract(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         if (!CreeperTweaksConfig.enableCreeperShearing) return;
         
         if (!this.creepertweaks$shearable) return;
         
-        ItemStack stack = player.getStackInHand(hand);
-        if (stack.isOf(Items.SHEARS) && !creepertweaks$defused) {
-            if (!this.getEntityWorld().isClient()) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (stack.is(Items.SHEARS) && !creepertweaks$defused) {
+            if (!this.level().isClientSide()) {
                  creepertweaks$defused = true;
-                 this.getEntityWorld().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_SHEEP_SHEAR, SoundCategory.HOSTILE, 1.0F, 1.0F);
-                 stack.damage(1, player, EquipmentSlot.MAINHAND);
+                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.SHEEP_SHEAR, SoundSource.HOSTILE, 1.0F, 1.0F);
+                 stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
                  
-                 if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
-                     this.dropItem(serverWorld, Items.GUNPOWDER);
+                 if (this.level() instanceof ServerLevel serverWorld) {
+                     this.spawnAtLocation(serverWorld, Items.GUNPOWDER);
                  }
                  
                  // Reset the fuse to 0 and prevent ignition
-                 CreeperEntity creeper = (CreeperEntity)(Object)this;
-                 creeper.setFuseSpeed(-1); // Force fuse to decrease
+                 Creeper creeper = (Creeper)(Object)this;
+                 creeper.setSwellDir(-1); // Force fuse to decrease
                  creeper.setTarget(null); // Clear target to stop aggression
             }
-            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }
 
-    @Inject(method = "explode", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "explodeCreeper", at = @At("HEAD"), cancellable = true)
     public void creepertweaks$onExplode(CallbackInfo ci) {
         if (creepertweaks$defused) {
             ci.cancel();
@@ -249,9 +247,9 @@ public abstract class CreeperMixin extends HostileEntity implements CreeperMixin
                 ci.cancel();
                 this.dead = true;
                 
-                World world = this.getEntityWorld();
-                if (!world.isClient()) {
-                     world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE, SoundCategory.HOSTILE, 1.0F, 1.0F);
+                Level world = this.level();
+                if (!world.isClientSide()) {
+                     world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.FIREWORK_ROCKET_TWINKLE, SoundSource.HOSTILE, 1.0F, 1.0F);
                      
                      // Create Firework Rocket
                      ItemStack stack = new ItemStack(Items.FIREWORK_ROCKET);
@@ -265,8 +263,8 @@ public abstract class CreeperMixin extends HostileEntity implements CreeperMixin
                      }
                      
                      // Create explosion component
-                     FireworkExplosionComponent explosion = new FireworkExplosionComponent(
-                         FireworkExplosionComponent.Type.BURST,
+                     FireworkExplosion explosion = new FireworkExplosion(
+                         FireworkExplosion.Shape.BURST,
                          colors,
                          IntList.of(), // fade colors
                          false, // trail
@@ -274,16 +272,16 @@ public abstract class CreeperMixin extends HostileEntity implements CreeperMixin
                      );
                      
                      // Create fireworks component
-                     FireworksComponent fireworks = new FireworksComponent(0, List.of(explosion));
+                     Fireworks fireworks = new Fireworks(0, List.of(explosion));
                      
                      // Apply to stack
-                     stack.set(DataComponentTypes.FIREWORKS, fireworks);
+                     stack.set(DataComponents.FIREWORKS, fireworks);
                      
                      // Spawn and explode
                      FireworkRocketEntity rocket = new FireworkRocketEntity(world, this.getX(), this.getY() + 0.5, this.getZ(), stack);
-                     world.spawnEntity(rocket);
+                     world.addFreshEntity(rocket);
                      // Force explode effect on clients
-                     world.sendEntityStatus(rocket, EntityStatuses.EXPLODE_FIREWORK_CLIENT);
+                     world.broadcastEntityEvent(rocket, EntityEvent.FIREWORKS_EXPLODE);
                      // Remove entity
                      rocket.discard();
                      
@@ -294,42 +292,42 @@ public abstract class CreeperMixin extends HostileEntity implements CreeperMixin
         }
 
         // Lingering Effect Logic
-        if (creepertweaks$lingering && !this.getEntityWorld().isClient()) {
+        if (creepertweaks$lingering && !this.level().isClientSide()) {
             spawnLingeringCloud();
         }
     }
 
     private void spawnLingeringCloud() {
-        World world = this.getEntityWorld();
-        AreaEffectCloudEntity cloud = new AreaEffectCloudEntity(world, this.getX(), this.getY(), this.getZ());
+        Level world = this.level();
+        AreaEffectCloud cloud = new AreaEffectCloud(world, this.getX(), this.getY(), this.getZ());
         cloud.setRadius(creepertweaks$lingeringRadius);
         cloud.setRadiusOnUse(-0.5F);
         cloud.setWaitTime(10);
         cloud.setDuration(creepertweaks$lingeringDuration);
-        cloud.setRadiusGrowth(-cloud.getRadius() / (float)cloud.getDuration());
+        cloud.setRadiusPerTick(-cloud.getRadius() / (float)cloud.getDuration());
 
-        Identifier effectId = Identifier.of(creepertweaks$lingeringType.toLowerCase());
-        Optional<net.minecraft.registry.entry.RegistryEntry.Reference<StatusEffect>> effectEntry = Registries.STATUS_EFFECT.getEntry(effectId);
+        Identifier effectId = Identifier.parse(creepertweaks$lingeringType.toLowerCase());
+        Optional<net.minecraft.core.Holder.Reference<MobEffect>> effectEntry = BuiltInRegistries.MOB_EFFECT.get(effectId);
 
         if (effectEntry.isPresent()) {
-             cloud.addEffect(new StatusEffectInstance(effectEntry.get(), creepertweaks$lingeringDuration, 0));
+             cloud.addEffect(new MobEffectInstance(effectEntry.get(), creepertweaks$lingeringDuration, 0));
         } else {
              // Fallback to Poison if invalid
-             Registries.STATUS_EFFECT.getEntry(Identifier.of("poison")).ifPresent(entry -> 
-                cloud.addEffect(new StatusEffectInstance(entry, creepertweaks$lingeringDuration, 0))
+             BuiltInRegistries.MOB_EFFECT.get(Identifier.parse("poison")).ifPresent(entry -> 
+                cloud.addEffect(new MobEffectInstance(entry, creepertweaks$lingeringDuration, 0))
              );
         }
 
-        world.spawnEntity(cloud);
+        world.addFreshEntity(cloud);
     }
     
     @Inject(method = "tick", at = @At("HEAD"))
     public void creepertweaks$onTick(CallbackInfo ci) {
         if (creepertweaks$defused) {
-            CreeperEntity creeper = (CreeperEntity)(Object)this;
+            Creeper creeper = (Creeper)(Object)this;
             // Force the fuse speed to be negative (decreasing) if it's trying to explode
-            if (creeper.getFuseSpeed() > 0) {
-                creeper.setFuseSpeed(-1);
+            if (creeper.getSwellDir() > 0) {
+                creeper.setSwellDir(-1);
             }
         }
     }

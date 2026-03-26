@@ -3,22 +3,21 @@ package me.noramibu.creepertweaks.util;
 import me.noramibu.creepertweaks.config.CreeperTweaksConfig;
 import me.noramibu.creepertweaks.config.CreeperType;
 import me.noramibu.creepertweaks.mixin.CreeperAccessor;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.CreeperEntity;
-import net.minecraft.text.Text;
-
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Creeper;
 import java.util.Objects;
 
 public class CreeperUtils {
-    public static void applyCreeperType(CreeperEntity creeper, CreeperType type) {
+    public static void applyCreeperType(Creeper creeper, CreeperType type) {
         // Apply scale
         if (type.scale != 1.0) {
-            Objects.requireNonNull(creeper.getAttributeInstance(EntityAttributes.SCALE)).setBaseValue(type.scale);
+            Objects.requireNonNull(creeper.getAttribute(Attributes.SCALE)).setBaseValue(type.scale);
         }
 
         // Apply speed
         if (type.speed != 0.25) {
-            Objects.requireNonNull(creeper.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED)).setBaseValue(type.speed);
+            Objects.requireNonNull(creeper.getAttribute(Attributes.MOVEMENT_SPEED)).setBaseValue(type.speed);
         }
 
         // Apply explosion radius
@@ -28,12 +27,12 @@ public class CreeperUtils {
 
         // Apply charged
         if (type.charged) {
-            creeper.getDataTracker().set(CreeperAccessor.getCHARGED(), true);
+            creeper.getEntityData().set(CreeperAccessor.getCHARGED(), true);
         }
 
         // Apply health
         if (type.health != 20.0) {
-            Objects.requireNonNull(creeper.getAttributeInstance(EntityAttributes.MAX_HEALTH)).setBaseValue(type.health);
+            Objects.requireNonNull(creeper.getAttribute(Attributes.MAX_HEALTH)).setBaseValue(type.health);
             creeper.setHealth((float) type.health);
         }
 
@@ -71,7 +70,7 @@ public class CreeperUtils {
         if (CreeperTweaksConfig.enableNameTags && type.nameTag != null && !type.nameTag.isEmpty()) {
             // Replace & with section sign for simple formatting
             String formattedName = type.nameTag.replace("&", "§");
-            creeper.setCustomName(Text.literal(formattedName));
+            creeper.setCustomName(Component.literal(formattedName));
             creeper.setCustomNameVisible(true);
         }
     }

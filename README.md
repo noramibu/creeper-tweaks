@@ -1,6 +1,6 @@
 # Creeper Tweaks
 
-A server-side Fabric mod for Minecraft 1.21.10 that adds various tweaks and custom behaviors to Creepers.
+A server-side Fabric mod for Minecraft 26.1 that adds various tweaks and custom behaviors to Creepers.
 
 ## Features
 

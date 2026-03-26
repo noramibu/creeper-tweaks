@@ -1,14 +1,14 @@
 package me.noramibu.creepertweaks.mixin;
 
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.mob.CreeperEntity;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.world.entity.monster.Creeper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(CreeperEntity.class)
+@Mixin(Creeper.class)
 public interface CreeperAccessor {
-    @Accessor("CHARGED")
-    static TrackedData<Boolean> getCHARGED() {
+    @Accessor("DATA_IS_POWERED")
+    static EntityDataAccessor<Boolean> getCHARGED() {
         throw new UnsupportedOperationException();
     }
 
