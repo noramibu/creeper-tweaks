@@ -29,6 +29,8 @@ Each creeper type can be customized with:
 - Health
 - Movement speed
 - Explosion radius
+- Fuse time
+- Movement during fuse
 - Charged state
 - Shearable status
 - Confetti chance
@@ -78,6 +80,8 @@ enableConfettiCreepers = true             # Master switch for confetti explosion
 enableEcoFriendlyCreepers = true          # Master switch for eco-friendly drops
 enableHeadDrops = true                    # Master switch for head drops
 enableNameTags = true                     # Master switch for custom name tags
+setCustomFuseTime = false                 # Master switch for custom fuse times
+allowMovementDuringFuse = false           # Master switch for movement during fuse
 enableBlockRegeneration = true             # Master switch for block regeneration
 enableRegenerationParticles = true         # Enable particles during regeneration
 regenerationParticleType = "block"        # Particle type: "block", "smoke", "cloud", "enchant", etc.
@@ -97,6 +101,8 @@ scale = 1.0                               # Size multiplier
 health = 20.0                             # Maximum health
 speed = 0.25                              # Movement speed
 explosionRadius = 3                       # Explosion radius in blocks
+fuseTime = 30                             # Fuse length in ticks; a small note, it's not possible to slow down the client-side swelling animation of creepers
+allowMovementDuringFuse = false           # Keep moving while the fuse is active
 charged = false                           # Spawn as charged creeper
 shearable = true                          # Can be defused with shears
 confettiChance = 0.05                     # Chance to explode into confetti (0.0-1.0)

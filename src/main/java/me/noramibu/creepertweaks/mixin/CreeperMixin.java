@@ -26,6 +26,7 @@ import net.minecraft.world.item.component.FireworkExplosion;
 import net.minecraft.world.item.component.Fireworks;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -44,6 +45,7 @@ public abstract class CreeperMixin extends Monster implements CreeperMixinExtens
     private double creepertweaks$confettiChance = 0.0;
     private boolean creepertweaks$ecoFriendly = false;
     private double creepertweaks$headDropChance = 0.25;
+    private boolean creepertweaks$allowMovementDuringFuse = false;
 
     // Lingering fields
     private boolean creepertweaks$lingering = false;
@@ -98,6 +100,16 @@ public abstract class CreeperMixin extends Monster implements CreeperMixinExtens
     @Override
     public double creepertweaks$getHeadDropChance() {
         return this.creepertweaks$headDropChance;
+    }
+
+    @Override
+    public void creepertweaks$setAllowMovementDuringFuse(boolean allowMovementDuringFuse) {
+        this.creepertweaks$allowMovementDuringFuse = allowMovementDuringFuse;
+    }
+
+    @Override
+    public boolean creepertweaks$allowsMovementDuringFuse() {
+        return CreeperTweaksConfig.allowMovementDuringFuse && this.creepertweaks$allowMovementDuringFuse;
     }
 
     @Override
@@ -179,6 +191,7 @@ public abstract class CreeperMixin extends Monster implements CreeperMixinExtens
         view.putDouble("CreeperTweaks_ConfettiChance", creepertweaks$confettiChance);
         view.putBoolean("CreeperTweaks_EcoFriendly", creepertweaks$ecoFriendly);
         view.putDouble("CreeperTweaks_HeadDropChance", creepertweaks$headDropChance);
+        view.putBoolean("CreeperTweaks_AllowMovementDuringFuse", creepertweaks$allowMovementDuringFuse);
 
         view.putBoolean("CreeperTweaks_Lingering", creepertweaks$lingering);
         view.putString("CreeperTweaks_LingeringType", creepertweaks$lingeringType);
@@ -198,6 +211,7 @@ public abstract class CreeperMixin extends Monster implements CreeperMixinExtens
         creepertweaks$confettiChance = view.getDoubleOr("CreeperTweaks_ConfettiChance", 0.0);
         creepertweaks$ecoFriendly = view.getBooleanOr("CreeperTweaks_EcoFriendly", false);
         creepertweaks$headDropChance = view.getDoubleOr("CreeperTweaks_HeadDropChance", 0.25);
+        creepertweaks$allowMovementDuringFuse = view.getBooleanOr("CreeperTweaks_AllowMovementDuringFuse", false);
 
         creepertweaks$lingering = view.getBooleanOr("CreeperTweaks_Lingering", false);
         creepertweaks$lingeringType = view.getStringOr("CreeperTweaks_LingeringType", "POISON");
@@ -293,11 +307,12 @@ public abstract class CreeperMixin extends Monster implements CreeperMixinExtens
 
         // Lingering Effect Logic
         if (creepertweaks$lingering && !this.level().isClientSide()) {
-            spawnLingeringCloud();
+            creepertweaks$spawnLingeringCloud();
         }
     }
 
-    private void spawnLingeringCloud() {
+    @Unique
+    private void creepertweaks$spawnLingeringCloud() {
         Level world = this.level();
         AreaEffectCloud cloud = new AreaEffectCloud(world, this.getX(), this.getY(), this.getZ());
         cloud.setRadius(creepertweaks$lingeringRadius);

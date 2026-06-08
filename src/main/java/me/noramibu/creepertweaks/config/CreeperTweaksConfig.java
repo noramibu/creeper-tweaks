@@ -23,6 +23,8 @@ public class CreeperTweaksConfig {
     public static boolean enableEcoFriendlyCreepers = true;
     public static boolean enableHeadDrops = true;
     public static boolean enableNameTags = true;
+    public static boolean setCustomFuseTime = false;
+    public static boolean allowMovementDuringFuse = false;
     public static boolean enableBlockRegeneration = true;
     public static boolean enableRegenerationParticles = true;
     public static String regenerationParticleType = "block";
@@ -61,6 +63,8 @@ public class CreeperTweaksConfig {
         enableEcoFriendlyCreepers = config.getOrElse("global.enableEcoFriendlyCreepers", true);
         enableHeadDrops = config.getOrElse("global.enableHeadDrops", true);
         enableNameTags = config.getOrElse("global.enableNameTags", true);
+        setCustomFuseTime = config.getOrElse("global.setCustomFuseTime", false);
+        allowMovementDuringFuse = config.getOrElse("global.allowMovementDuringFuse", false);
         enableBlockRegeneration = config.getOrElse("global.enableBlockRegeneration", true);
         enableRegenerationParticles = config.getOrElse("global.enableRegenerationParticles", true);
         regenerationParticleType = config.getOrElse("global.regenerationParticleType", "block");
@@ -82,6 +86,8 @@ public class CreeperTweaksConfig {
                     c.getOrElse("health", 20.0),
                     c.getOrElse("speed", 0.25),
                     c.getOrElse("explosionRadius", 3),
+                    c.getOrElse("fuseTime", 30),
+                    c.getOrElse("allowMovementDuringFuse", false),
                     c.getOrElse("charged", false),
                     c.getOrElse("shearable", true),
                     c.getOrElse("confettiChance", 0.0),
@@ -104,7 +110,7 @@ public class CreeperTweaksConfig {
         
         if (creeperTypes.isEmpty()) {
             CreeperTweaks.LOGGER.warn("No creeper types found in config! Using fallback.");
-            CreeperType fallback = new CreeperType("fallback", 1.0, 1.0, 20.0, 0.25, 3, false, true, 0.0, 1.0, false, 0.25, false, "POISON", 600, 3.0, "", false, 200, 10.0);
+            CreeperType fallback = new CreeperType("fallback", 1.0, 1.0, 20.0, 0.25, 3, 30, false, false, true, 0.0, 1.0, false, 0.25, false, "POISON", 600, 3.0, "", false, 200, 10.0);
             creeperTypes.add(fallback);
             totalWeight = 1.0;
         }

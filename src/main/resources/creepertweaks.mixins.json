@@ -6,6 +6,7 @@
     "CreeperMixin",
     "MobSpawnMixin",
     "CreeperAccessor",
+    "SwellGoalMixin",
     "ServerLevelMixin",
     "LivingEntityMixin",
     "ExplosionMixin"

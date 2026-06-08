@@ -25,6 +25,13 @@ public class CreeperUtils {
             ((CreeperAccessor) creeper).setExplosionRadius(type.explosionRadius);
         }
 
+        if (CreeperTweaksConfig.setCustomFuseTime) {
+            int fuseTime = Math.max(3, type.fuseTime);
+            if (fuseTime != 30) {
+                ((CreeperAccessor) creeper).setMaxSwell(fuseTime);
+            }
+        }
+
         // Apply charged
         if (type.charged) {
             creeper.getEntityData().set(CreeperAccessor.getCHARGED(), true);
@@ -46,6 +53,7 @@ public class CreeperUtils {
             
             // Apply head drop chance
             extensions.creepertweaks$setHeadDropChance(type.headDropChance);
+            extensions.creepertweaks$setAllowMovementDuringFuse(type.allowMovementDuringFuse);
 
             // Apply lingering explosion settings
             extensions.creepertweaks$setLingering(type.lingering);

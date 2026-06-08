@@ -14,4 +14,7 @@ public interface CreeperAccessor {
 
     @Accessor("explosionRadius")
     void setExplosionRadius(int radius);
+
+    @Accessor("maxSwell")
+    void setMaxSwell(int maxSwell);
 }

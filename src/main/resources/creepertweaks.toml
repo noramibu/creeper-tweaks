@@ -21,6 +21,15 @@ enableHeadDrops = true
 # If false, custom nametags are ignored and creepers will display their default names (or no name).
 enableNameTags = true
 
+# Master switch for custom fuse times.
+# If false, fuseTime is ignored and creepers use vanilla fuse time.
+# Note: Custom fuse time changes explosion timing but not the client swelling animation speed. It's unfortunately not possible to edit client-side animation. Also vanilla fuse time is 30 ticks
+setCustomFuseTime = false
+
+# Master switch for movement during fuse.
+# If false, allowMovementDuringFuse is ignored.
+allowMovementDuringFuse = false
+
 # Master switch for Block Regeneration.
 # If false, blocks destroyed by creepers with 'blockRegeneration' enabled will NOT regenerate.
 enableBlockRegeneration = true
@@ -47,6 +56,11 @@ debug = false
 # Logic: (spawn-chance / total_spawn_chance_of_all_types).
 # For chance values like confettiChance and ecoFriendlyDropChance, use 0.0 to 1.0 (0.0 = 0% aka disabled, 1.0 = 100%).
 
+# Fuse Options:
+# fuseTime = fuse length in ticks (vanilla 30 ticks = 1.5 seconds, minimum 3)
+# Note: On a server-side-only install, custom fuse time changes explosion timing but not the client swelling animation speed.
+# allowMovementDuringFuse = true/false (if true, creepers can keep moving while the fuse is active)
+#
 # Lingering Effect Options:
 # lingering = true/false (enables area effect cloud on explosion)
 # lingeringType = "poison", "instant_damage", "nausea", "slowness", "weakness", etc. (Status Effect ID)
@@ -77,6 +91,8 @@ scale = 1.0
 health = 20.0
 speed = 0.25
 explosionRadius = 3
+fuseTime = 30
+allowMovementDuringFuse = false
 charged = false
 shearable = true
 confettiChance = 0.05
@@ -99,6 +115,8 @@ scale = 0.5
 health = 10.0
 speed = 0.3
 explosionRadius = 2
+fuseTime = 30
+allowMovementDuringFuse = false
 charged = false
 shearable = true
 confettiChance = 0.05
@@ -118,6 +136,8 @@ scale = 0.5
 health = 10.0
 speed = 0.35
 explosionRadius = 4
+fuseTime = 30
+allowMovementDuringFuse = false
 charged = true
 shearable = true
 confettiChance = 0.05
@@ -137,6 +157,8 @@ scale = 1.0
 health = 20.0
 speed = 0.25
 explosionRadius = 6
+fuseTime = 30
+allowMovementDuringFuse = false
 charged = true
 shearable = true
 confettiChance = 0.05
@@ -156,6 +178,8 @@ scale = 1.5
 health = 50.0
 speed = 0.15
 explosionRadius = 8
+fuseTime = 30
+allowMovementDuringFuse = false
 charged = false
 shearable = true
 confettiChance = 0.05
@@ -175,6 +199,8 @@ scale = 1.0
 health = 15.0
 speed = 0.3
 explosionRadius = 3
+fuseTime = 30
+allowMovementDuringFuse = false
 charged = false
 shearable = true
 confettiChance = 0.05
@@ -194,6 +220,8 @@ scale = 1.0
 health = 20.0
 speed = 0.25
 explosionRadius = 0
+fuseTime = 30
+allowMovementDuringFuse = false
 charged = false
 shearable = true
 confettiChance = 0.05

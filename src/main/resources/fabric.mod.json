@@ -25,6 +25,6 @@
   "accessWidener": "creepertweaks.accesswidener",
   "depends": {
     "fabricloader": ">=0.18.4",
-    "minecraft": "${minecraft}"
+    "minecraft": ">=26.1 <26.2"
   }
 }

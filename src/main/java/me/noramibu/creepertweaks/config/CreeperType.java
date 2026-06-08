@@ -7,6 +7,8 @@ public class CreeperType {
     public double health;
     public double speed;
     public int explosionRadius;
+    public int fuseTime;
+    public boolean allowMovementDuringFuse;
     public boolean charged;
     public boolean shearable;
     public double confettiChance;
@@ -22,13 +24,15 @@ public class CreeperType {
     public int regenerationDelay;
     public double regenerationSpeed;
 
-    public CreeperType(String name, double spawnChance, double scale, double health, double speed, int explosionRadius, boolean charged, boolean shearable, double confettiChance, double ecoFriendlyDropChance, boolean silent, double headDropChance, boolean lingering, String lingeringType, int lingeringDuration, double lingeringRadius, String nameTag, boolean blockRegeneration, int regenerationDelay, double regenerationSpeed) {
+    public CreeperType(String name, double spawnChance, double scale, double health, double speed, int explosionRadius, int fuseTime, boolean allowMovementDuringFuse, boolean charged, boolean shearable, double confettiChance, double ecoFriendlyDropChance, boolean silent, double headDropChance, boolean lingering, String lingeringType, int lingeringDuration, double lingeringRadius, String nameTag, boolean blockRegeneration, int regenerationDelay, double regenerationSpeed) {
         this.name = name;
         this.spawnChance = spawnChance;
         this.scale = scale;
         this.health = health;
         this.speed = speed;
         this.explosionRadius = explosionRadius;
+        this.fuseTime = fuseTime;
+        this.allowMovementDuringFuse = allowMovementDuringFuse;
         this.charged = charged;
         this.shearable = shearable;
         this.confettiChance = confettiChance;

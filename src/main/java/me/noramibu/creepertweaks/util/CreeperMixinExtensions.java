@@ -9,6 +9,8 @@ public interface CreeperMixinExtensions {
     boolean creepertweaks$isEcoFriendly();
     void creepertweaks$setHeadDropChance(double chance);
     double creepertweaks$getHeadDropChance();
+    void creepertweaks$setAllowMovementDuringFuse(boolean allowMovementDuringFuse);
+    boolean creepertweaks$allowsMovementDuringFuse();
 
     // Lingering explosion properties
     void creepertweaks$setLingering(boolean lingering);
