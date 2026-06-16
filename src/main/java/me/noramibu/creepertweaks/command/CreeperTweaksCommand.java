@@ -16,7 +16,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.phys.Vec3;
 import java.util.UUID;
@@ -62,7 +62,7 @@ public class CreeperTweaksCommand {
         CommandSourceStack source = context.getSource();
         Vec3 pos = source.getPosition();
         
-        Creeper creeper = EntityType.CREEPER.create(source.getLevel(), net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+        Creeper creeper = EntityTypes.CREEPER.create(source.getLevel(), net.minecraft.world.entity.EntitySpawnReason.COMMAND);
         if (creeper != null) {
             creeper.snapTo(pos.x, pos.y, pos.z, 0, 0);
             CreeperUtils.applyCreeperType(creeper, type);
